@@ -1,109 +1,63 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-
 const app = express();
 const PORT = 3000;
 
-// Middleware to prevent browser caching issues
-app.use((req, res, next) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-    next();
-});
+// Middleware to parse URL-encoded form data
+app.use(express.urlencoded({ extended: true }));
 
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Serve the Task 3 Interactive App
+// Serve the main form page
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <title>Task 3 - Interactive Task Manager</title>
+            <title>Cognifyz - Task 4</title>
             <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f4f7f6;
-                    margin: 0;
-                    padding: 50px;
-                    display: flex;
-                    justify-content: center;
-                }
-                .container {
-                    background: white;
-                    padding: 30px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                    width: 400px;
-                }
-                h2 { color: #333; text-align: center; }
-                p { text-align: center; color: #666; }
-                .input-group {
-                    display: flex;
-                    gap: 10px;
-                }
-                input[type="text"] {
-                    flex: 1;
-                    padding: 10px;
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
-                }
-                button {
-                    padding: 10px 15px;
-                    background-color: #28a745;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }
-                button:hover { background-color: #218838; }
-                ul { list-style-type: none; padding: 0; margin-top: 20px; }
-                li {
-                    background: #e9ecef;
-                    padding: 10px;
-                    margin-top: 8px;
-                    border-radius: 4px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .delete-btn {
-                    background-color: #dc3545;
-                    padding: 5px 8px;
-                    font-size: 12px;
-                }
-                .delete-btn:hover { background-color: #c82333; }
+                body { font-family: Arial, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+                h2 { color: #333; }
+                input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+                button { background-color: #007bff; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 16px; }
+                button:hover { background-color: #0056b3; }
+                #error-msg { color: red; font-size: 14px; margin-top: 10px; }
+                #success-msg { color: green; font-size: 14px; margin-top: 10px; }
             </style>
         </head>
         <body>
-            <div class="container">
-                <h2>Cognifyz - Task 3</h2>
-                <p>Interactive DOM Manipulation</p>
-                <div class="input-group">
-                    <input type="text" id="taskInput" placeholder="Enter a new task...">
-                    <button onclick="addTask()">Add</button>
-                </div>
-                <ul id="taskList"></ul>
+            <div class="card">
+                <h2>Cognifyz - Task 4</h2>
+                <p>Complex Form Validation</p>
+                <form id="valForm" action="/submit" method="POST" onsubmit="return validateForm(event)">
+                    <input type="text" id="username" name="username" placeholder="Enter Username (min 3 chars)" required>
+                    <input type="password" id="password" name="password" placeholder="Enter Password (min 6 chars, 1 number)" required>
+                    <button type="submit">Register</button>
+                </form>
+                <div id="error-msg"></div>
             </div>
 
             <script>
-                function addTask() {
-                    const input = document.getElementById('taskInput');
-                    const taskText = input.value.trim();
-                    if (taskText === "") {
-                        alert("Please enter a task!");
-                        return;
+                function validateForm(event) {
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    const errorDiv = document.getElementById('error-msg');
+
+                    // Validation checks
+                    if (username.length < 3) {
+                        errorDiv.innerText = "Username must be at least 3 characters long.";
+                        event.preventDefault();
+                        return false;
                     }
 
-                    const ul = document.getElementById('taskList');
-                    const li = document.createElement('li');
-                    
-                    li.innerHTML = \`<span>\${taskText}</span> <button class="delete-btn" onclick="this.parentElement.remove()">Delete</button>\`;
-                    ul.appendChild(li);
-                    
-                    input.value = "";
+                    const passwordRegex = /^(?=.*[0-9])(?=.*[a-zA-Z]).{6,}$/;
+                    if (!passwordRegex.test(password)) {
+                        errorDiv.innerText = "Password must be at least 6 characters and contain a number.";
+                        event.preventDefault();
+                        return false;
+                    }
+
+                    errorDiv.innerText = "";
+                    return true;
                 }
             </script>
         </body>
@@ -111,6 +65,18 @@ app.get('/', (req, res) => {
     `);
 });
 
+// Handle form submission POST request
+app.post('/submit', (req, res) => {
+    const { username, password } = req.body;
+    res.send(`
+        <body style="font-family: Arial; text-align: center; padding-top: 50px;">
+            <h2 style="color: green;">Validation Successful! 🎉</h2>
+            <p>Welcome, <strong>${username}</strong>! Your data passed all client and server checks.</p>
+            <a href="/" style="color: #007bff; text-decoration: none;">&larr; Back to Task 4</a>
+        </body>
+    `);
+});
+
 app.listen(PORT, () => {
-    console.log(`Task 3 Server is running on http://localhost:${PORT}`);
+    console.log(`Task 4 Server is running on http://localhost:${PORT}`);
 });
