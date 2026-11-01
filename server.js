@@ -1,24 +1,55 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const app = express();
 
-// Set EJS as the templating engine
-app.set('view engine', 'ejs');
+const app = express();
+const PORT = 3000;
+
+// Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Home route to render the HTML form
+// Serve the Task 2 Form
 app.get('/', (req, res) => {
-    res.render('index');
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Task 2 - Form Validation</title>
+            <script>
+                function validateForm() {
+                    let username = document.forms["myForm"]["username"].value;
+                    if (username.trim() == "") {
+                        alert("Username must be filled out!");
+                        return false;
+                    }
+                }
+            </script>
+        </head>
+        <body>
+            <h2>Cognifyz Internship - Task 2: Form Validation</h2>
+            <form name="myForm" action="/validate" method="POST" onsubmit="return validateForm()">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter username">
+                <button type="submit">Submit</button>
+            </form>
+        </body>
+        </html>
+    `);
 });
 
-// Endpoint to handle form submission and render dynamic HTML
-app.post('/submit', (req, res) => {
-    const userName = req.body.name;
-    const userEmail = req.body.email;
-    res.render('result', { name: userName, email: userEmail });
+// Handle POST request at /validate endpoint
+app.post('/validate', (req, res) => {
+    const username = req.body.username;
+
+    // Server-side check
+    if (!username || username.trim() === "") {
+        return res.send("<h3>Error: Username cannot be empty on server-side!</h3><a href='/'>Go Back</a>");
+    }
+
+    res.send(`<h3>Task 2 Validation Successful!</h3><p>Welcome, <strong>${username}</strong>!</p><br><a href='/'>Go Back</a>`);
 });
 
-// Start the server
-app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
+// Start server
+app.listen(PORT, () => {
+    console.log(`Task 2 Server is running on http://localhost:${PORT}`);
 });
